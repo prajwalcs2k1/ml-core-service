@@ -374,6 +374,11 @@ module.exports = class ProgramsHelper {
             );
           }
         }
+        // Convert component IDs to ObjectId if present
+        if (data.components && Array.isArray(data.components)) {
+          data.components = data.components.map(id => ObjectId(id));
+        }
+
         let program = await database.models.programs.findOneAndUpdate({
           _id : programId
         },{ $set : _.omit(data,["scope"]) }, { new: true });
@@ -633,10 +638,9 @@ module.exports = class ProgramsHelper {
           }
         }
 
-        let caseInsensitiveRoles = [constants.common.ALL_ROLES,...data.role.split(",")].map(role => new RegExp(`^${role}$`, "i"));
        
         let filterQuery = {
-          "scope.roles.code" : { $in : caseInsensitiveRoles },
+          "scope.roles.code" : { $in : [constants.common.ALL_ROLES,...data.role.split(",")] },
           "scope.entities" : { $in : locationIds },
           "isDeleted" : false,
           status : constants.common.ACTIVE
